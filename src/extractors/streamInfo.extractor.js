@@ -2,11 +2,12 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import { v1_base_url } from "../utils/base_v1.js";
 import decryptMegacloud from "../parsers/decryptors/megacloud.decryptor.js";
+import AniplayExtractor from "../parsers/aniplay.parser.js";
 
 export async function extractServers(id) {
   try {
     const resp = await axios.get(
-      `https://${v1_base_url}/ajax/v2/episode/servers?episodeId=${id}`
+      `https://${v1_base_url}/ajax/v2/episode/servers?episodeId=${id}`,
     );
     const $ = cheerio.load(resp.data.html);
     const serverData = [];
@@ -29,30 +30,41 @@ export async function extractServers(id) {
   }
 }
 
-async function extractStreamingInfo(id, name, type) {
+async function extractStreamingInfo(
+  id,
+  name,
+  type,
+  anilistId = null,
+  epnum = null,
+) {
   try {
     const servers = await extractServers(id.split("?ep=").pop());
     let requestedServer = servers.filter(
       (server) =>
         server.serverName.toLowerCase() === name.toLowerCase() &&
-        server.type.toLowerCase() === type.toLowerCase()
+        server.type.toLowerCase() === type.toLowerCase(),
     );
     if (requestedServer.length === 0) {
       requestedServer = servers.filter(
         (server) =>
           server.serverName.toLowerCase() === name.toLowerCase() &&
-          server.type.toLowerCase() === "raw"
+          server.type.toLowerCase() === "raw",
       );
     }
-    if (requestedServer.length === 0) {
+    if (requestedServer.length === 0 && name.toLowerCase() !== "hd-3") {
       throw new Error(
-        `No matching server found for name: ${name}, type: ${type}`
+        `No matching server found for name: ${name}, type: ${type}`,
       );
+    }
+    if (name.toLowerCase() === "hd-3" && anilistId && epnum) {
+      const extractor = new AniplayExtractor();
+      const streamingLink = await extractor.fetchEpisode(anilistId, epnum);
+      return { streamingLink: streamingLink.sources, servers };
     }
     const streamingLink = await decryptMegacloud(
       requestedServer[0].data_id,
       name,
-      type
+      type,
     );
     return { streamingLink, servers };
   } catch (error) {
