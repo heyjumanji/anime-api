@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Anime Scraper API Docs</title>
+  <style>
+    body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
+    h1, h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+    #player-container { margin-top: 20px; }
+    iframe { border: 1px solid #ccc; }
+    form { display: flex; flex-direction: column; max-width: 400px; }
+    form > div { margin-bottom: 10px; }
+    label { font-weight: bold; }
+    input, select { padding: 5px; }
+    button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+  <h1>Anime Scraper API Documentation</h1>
+
+  <h2>API Endpoints</h2>
+  <p>There are two main endpoints:</p>
+  <ul>
+    <li><code>/api/stream</code>: Returns the streaming information as a JSON object.</li>
+    <li><code>/api/embed</code>: Returns an embeddable player.</li>
+  </ul>
+
+  <h3>Query Parameters</h3>
+  <ul>
+    <li><code>anilistId</code> (required): The AniList ID of the anime.</li>
+    <li><code>episode</code> (required): The episode number.</li>
+    <li><code>server</code> (required): The streaming server. Available servers can be found by inspecting the network requests on hianime.do. Common servers include 'HD-1', 'HD-2'.</li>
+    <li><code>type</code> (required): The stream type, either <code>sub</code> or <code>dub</code>.</li>
+  </ul>
+
+  <h2>Test the Player</h2>
+  <form id="player-form">
+    <div>
+      <label for="anilistId">AniList ID:</label>
+      <input type="text" id="anilistId" value="1" required>
+    </div>
+    <div>
+      <label for="episode">Episode:</label>
+      <input type="number" id="episode" value="1" required>
+    </div>
+    <div>
+      <label for="server">Server:</label>
+      <select id="server" required>
+        <option value="HD-1">HD-1</option>
+        <option value="HD-2">HD-2</option>
+        <option value="HD-3">HD-3</option>
+      </select>
+    </div>
+    <div>
+      <label for="type">Type:</label>
+      <select id="type" required>
+        <option value="sub">Sub</option>
+        <option value="dub">Dub</option>
+      </select>
+    </div>
+    <button type="submit">Load Player</button>
+  </form>
+
+  <div id="player-container">
+    <iframe id="player-iframe" width="640" height="360" frameborder="0" allowfullscreen></iframe>
+  </div>
+
+  <script>
+    document.getElementById('player-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const anilistId = document.getElementById('anilistId').value;
+      const episode = document.getElementById('episode').value;
+      const server = document.getElementById('server').value;
+      const type = document.getElementById('type').value;
+
+      const embedUrl = `/api/embed?anilistId=${anilistId}&episode=${episode}&server=${server}&type=${type}`;
+      document.getElementById('player-iframe').src = embedUrl;
+    });
+  </script>
+</body>
+</html>
