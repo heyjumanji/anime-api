@@ -1,8 +1,6 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { v1_base_url } from "../utils/base_v1.js";
-// import decryptMegacloud from "../parsers/decryptors/megacloud.decryptor.js";
-// import AniplayExtractor from "../parsers/aniplay.parser.js";
 import { decryptSources_v1 } from "../parsers/decryptors/decrypt_v1.decryptor.js";
 
 export async function extractServers(id) {
@@ -35,6 +33,15 @@ export async function extractServers(id) {
 async function extractStreamingInfo(id, name, type, fallback) {
   try {
     const servers = await extractServers(id.split("?ep=").pop());
+
+    // --- HD-3 FIX: Return early for iframe-based servers ---
+    if (["hd-1", "hd-2", "hd-3"].includes(name.toLowerCase())) {
+        return { 
+          streamingLink: { isEmbed: true }, 
+          servers 
+        };
+    }
+
     let requestedServer = servers.filter(
       (server) =>
         server.serverName.toLowerCase() === name.toLowerCase() &&
